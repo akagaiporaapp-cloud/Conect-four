@@ -1,0 +1,774 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, viewport-fit=cover" />
+<title>Connect Four | Luminous Edition + Canal YT</title>
+<style>
+  * {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', 'Poppins', system-ui, -apple-system, BlinkMacSystemFont, 'Roboto', sans-serif;
+  }
+
+  body {
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background: radial-gradient(circle at 20% 30%, #0a0f2a, #030617);
+    padding: 12px;
+    position: relative;
+    overflow-x: hidden;
+  }
+
+  body::before {
+    content: '';
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    background-image: radial-gradient(2px 2px at 20px 40px, #ffffff30, transparent),
+                      radial-gradient(1px 1px at 80px 200px, #facc1550, transparent);
+    background-size: 80px 80px;
+    pointer-events: none;
+    z-index: 0;
+  }
+
+  /* CONTAINER PRINCIPAL - AJUSTADO PARA CABER NA TELA DO CELULAR */
+  .game-container {
+    width: 100%;
+    max-width: 98%;
+    background: rgba(15, 25, 45, 0.75);
+    backdrop-filter: blur(16px);
+    border-radius: 38px;
+    padding: 14px 14px 18px;
+    box-shadow: 0 25px 40px rgba(0, 0, 0, 0.6), inset 0 1px 1px rgba(255,255,255,0.1);
+    border: 1px solid rgba(255,255,255,0.2);
+    transition: all 0.3s ease;
+    z-index: 2;
+  }
+
+  /* BANNER HORIZONTAL DO YOUTUBE (CHAMATIVO) */
+  .yt-banner {
+    background: linear-gradient(105deg, #0f0c29, #302b63, #c31432);
+    border-radius: 28px;
+    margin-bottom: 12px;
+    padding: 8px 12px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 10px;
+    border: 1px solid rgba(255, 60, 100, 0.7);
+    box-shadow: 0 6px 14px rgba(0, 0, 0, 0.3);
+    cursor: pointer;
+    transition: all 0.25s;
+  }
+  .yt-banner:hover {
+    transform: scale(1.01);
+    background: linear-gradient(105deg, #1a1640, #3b3175, #e01e4a);
+    border-color: #ff3366;
+  }
+  .banner-left {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .yt-icon {
+    background: #ff0033;
+    width: 38px;
+    height: 38px;
+    border-radius: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    box-shadow: 0 0 8px rgba(255,0,50,0.7);
+  }
+  .banner-text h3 {
+    font-size: 0.95rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #FFE6B0, #FFB347, #FF6A88);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+  .banner-text p {
+    font-size: 0.7rem;
+    color: #cbd5e6;
+  }
+  .banner-cta {
+    background: rgba(255, 51, 102, 0.25);
+    backdrop-filter: blur(4px);
+    padding: 6px 14px;
+    border-radius: 40px;
+    border: 1px solid #ff3366;
+    font-weight: 700;
+    font-size: 0.75rem;
+    color: #ffe0e7;
+    display: flex;
+    gap: 6px;
+    align-items: center;
+    white-space: nowrap;
+  }
+  .yt-banner:hover .banner-cta {
+    background: #ff3366;
+    color: white;
+    box-shadow: 0 0 10px #ff3366;
+  }
+
+  .title {
+    text-align: center;
+    font-size: 1.7rem;
+    background: linear-gradient(135deg, #FFE6B0, #FFB347, #FF6A88);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 6px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+  .title span {
+    font-size: 1.6rem;
+  }
+
+  .status {
+    text-align: center;
+    background: rgba(0,0,0,0.5);
+    padding: 8px 8px;
+    margin: 8px 0 14px;
+    border-radius: 50px;
+    font-weight: 600;
+    font-size: 0.9rem;
+    backdrop-filter: blur(4px);
+    color: #F1F5F9;
+  }
+
+  /* TABULEIRO COMPACTO + AJUSTADO */
+  .board {
+    background: linear-gradient(145deg, #1E3A8A, #0F2B6D);
+    padding: 12px 10px;
+    border-radius: 42px;
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 6px;
+    box-shadow: inset 0 2px 8px rgba(0,0,0,0.5), 0 12px 20px -8px black;
+  }
+
+  .cell {
+    width: 100%;
+    aspect-ratio: 1 / 1;
+    border-radius: 50%;
+    background: #0B1120;
+    cursor: pointer;
+    transition: 0.18s cubic-bezier(0.2, 0.9, 0.4, 1.1);
+    box-shadow: inset 0 0 0 2px rgba(0,0,0,0.5), 0 2px 5px rgba(0,0,0,0.3);
+  }
+
+  .cell:hover {
+    transform: scale(1.03);
+    background: #1e293b;
+    box-shadow: 0 0 8px #3b82f6, inset 0 0 0 2px #3b82f6;
+  }
+
+  @keyframes dropGlow {
+    0% { transform: translateY(-280px) scale(0.5); opacity: 0.2; }
+    60% { transform: translateY(6px) scale(1.02); }
+    100% { transform: translateY(0) scale(1); opacity: 1; }
+  }
+  .cell.red, .cell.yellow {
+    animation: dropGlow 0.3s cubic-bezier(0.34, 1.2, 0.64, 1) forwards;
+  }
+  .cell.red {
+    background: radial-gradient(circle at 35% 35%, #FF8181, #DC2626);
+    box-shadow: 0 0 12px #ef4444cc, inset 0 1px 2px rgba(255,255,200,0.6);
+  }
+  .cell.yellow {
+    background: radial-gradient(circle at 35% 35%, #FFF0A5, #F59E0B);
+    box-shadow: 0 0 12px #fbbf24cc, inset 0 1px 2px rgba(255,250,210,0.8);
+  }
+
+  .win-glow {
+    animation: winPulse 0.6s infinite alternate;
+  }
+  @keyframes winPulse {
+    0% { box-shadow: 0 0 4px 2px gold, 0 0 0px 0px rgba(255,215,0,0.5); }
+    100% { box-shadow: 0 0 18px 6px #FFD966, 0 0 0px 4px rgba(255,200,0,0.7); }
+  }
+
+  .controls {
+    margin-top: 16px;
+    display: flex;
+    gap: 10px;
+  }
+  button {
+    flex: 1;
+    border: none;
+    padding: 10px 6px;
+    border-radius: 40px;
+    font-weight: bold;
+    font-size: 0.8rem;
+    cursor: pointer;
+    background: #1E293B;
+    color: #F0F9FF;
+    box-shadow: 0 4px 0 #0F172A;
+    transform: translateY(-2px);
+    transition: 0.1s linear;
+  }
+  button:active {
+    transform: translateY(2px);
+    box-shadow: 0 1px 0 #0F172A;
+  }
+  .reset-btn {
+    background: linear-gradient(95deg, #F97316, #EA580C);
+  }
+  .fullreset-btn {
+    background: linear-gradient(95deg, #475569, #334155);
+  }
+
+  .scoreboard {
+    display: flex;
+    gap: 12px;
+    margin-top: 16px;
+  }
+  .score {
+    flex: 1;
+    background: rgba(0, 0, 0, 0.55);
+    backdrop-filter: blur(6px);
+    padding: 8px 5px;
+    border-radius: 32px;
+    text-align: center;
+  }
+  .score h3 {
+    font-size: 0.75rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+  .score p {
+    font-size: 1.6rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #FDE68A, #FCD34D);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+  }
+
+  footer {
+    font-size: 0.6rem;
+    text-align: center;
+    margin-top: 12px;
+    color: #94a3b8;
+  }
+
+  /* POPUP ANIMADO COM X E BOTÃO */
+  .popup-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(8px);
+    z-index: 1000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    visibility: hidden;
+    opacity: 0;
+    transition: visibility 0.3s, opacity 0.3s;
+  }
+  .popup-overlay.active {
+    visibility: visible;
+    opacity: 1;
+  }
+  .popup-card {
+    position: relative;
+    background: linear-gradient(145deg, #1e1b3c, #0f0c2c);
+    border-radius: 38px;
+    max-width: 86%;
+    width: 340px;
+    padding: 24px 20px;
+    text-align: center;
+    border: 2px solid #ff3366;
+    box-shadow: 0 30px 45px rgba(0,0,0,0.6);
+    transform: scale(0.7) translateY(25px);
+    opacity: 0;
+    transition: transform 0.4s cubic-bezier(0.34, 1.2, 0.64, 1), opacity 0.4s;
+  }
+  .popup-overlay.active .popup-card {
+    transform: scale(1) translateY(0);
+    opacity: 1;
+  }
+  .popup-close-x {
+    position: absolute;
+    top: 12px;
+    right: 18px;
+    width: 30px;
+    height: 30px;
+    background: rgba(255,255,255,0.1);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 1rem;
+    color: #ccc;
+    opacity: 0.4;
+    pointer-events: none;
+    transition: 0.2s;
+  }
+  .popup-close-x.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .popup-close-x.active:hover {
+    background: #ff3366;
+    color: white;
+  }
+  .popup-icon {
+    background: #ff0033;
+    width: 65px;
+    height: 65px;
+    border-radius: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 0 auto 12px;
+    font-size: 2.2rem;
+  }
+  .popup-card h2 {
+    font-size: 1.5rem;
+    background: linear-gradient(135deg, #FFD166, #FF6B6B);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin-bottom: 8px;
+  }
+  .popup-card p {
+    color: #cbd5e6;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .popup-highlight {
+    background: rgba(255, 51, 102, 0.2);
+    border-radius: 30px;
+    padding: 6px;
+    margin: 10px 0;
+    font-weight: 600;
+    color: #ff99aa;
+    font-size: 0.85rem;
+  }
+  .countdown-number {
+    font-size: 2rem;
+    font-weight: 800;
+    background: linear-gradient(135deg, #38bdf8, #f472b6);
+    background-clip: text;
+    -webkit-background-clip: text;
+    color: transparent;
+    margin: 5px 0;
+  }
+  .popup-main-btn {
+    background: linear-gradient(90deg, #ff3366, #ff6680);
+    border: none;
+    padding: 10px 20px;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: white;
+    cursor: pointer;
+    opacity: 0.5;
+    pointer-events: none;
+    transition: 0.2s;
+    margin-top: 6px;
+  }
+  .popup-main-btn.active {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .popup-main-btn.active:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 15px #ff3366;
+  }
+
+  @media (max-width: 550px) {
+    .game-container {
+      padding: 12px 10px 15px;
+    }
+    .board {
+      gap: 5px;
+      padding: 10px 8px;
+    }
+    .cell {
+      min-width: 32px;
+    }
+    .banner-text h3 {
+      font-size: 0.8rem;
+    }
+    .title {
+      font-size: 1.4rem;
+    }
+    .score p {
+      font-size: 1.3rem;
+    }
+    button {
+      font-size: 0.7rem;
+      padding: 8px 4px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="game-container">
+  
+  <!-- BANNER DO YOUTUBE (HORIZONTAL) -->
+  <div class="yt-banner" id="ytBanner">
+    <div class="banner-left">
+      <div class="yt-icon"><i class="fab fa-youtube"></i></div>
+      <div class="banner-text">
+        <h3>🎯 DOMINE O TABULEIRO!</h3>
+        <p>Estratégia + Gameplays incríveis</p>
+      </div>
+    </div>
+    <div class="banner-cta">
+      <i class="fab fa-youtube"></i> MEU CANAL
+      <i class="fas fa-arrow-right"></i>
+    </div>
+  </div>
+
+  <div class="title">
+    <span>⚡</span> CONNECT FOUR <span>✨</span>
+  </div>
+
+  <div class="status" id="status">
+    🔴 Vez do Jogador Vermelho
+  </div>
+
+  <div class="board" id="board"></div>
+
+  <div class="controls">
+    <button class="reset-btn" id="resetGameBtn">⟳ Nova Rodada</button>
+    <button class="fullreset-btn" id="fullResetBtn">🗑️ Resetar Placar</button>
+  </div>
+
+  <div class="scoreboard">
+    <div class="score">
+      <h3>🔴 VERMELHO</h3>
+      <p id="redScore">0</p>
+    </div>
+    <div class="score">
+      <h3>🟡 AMARELO</h3>
+      <p id="yellowScore">0</p>
+    </div>
+  </div>
+  <footer>✦ solte a ficha | inscreva-se no canal ✦</footer>
+</div>
+
+<!-- POPUP COM CHAMADA + CONTAGEM -->
+<div id="popupOverlay" class="popup-overlay">
+  <div class="popup-card">
+    <div class="popup-close-x" id="popupCloseX"><i class="fas fa-times"></i></div>
+    <div class="popup-icon"><i class="fab fa-youtube"></i></div>
+    <h2>🔥 NÃO PERCA!</h2>
+    <p>Conteúdo exclusivo, estratégias e diversão no meu canal!</p>
+    <div class="popup-highlight">
+      <i class="fas fa-trophy"></i> INSCREVA-SE NO YOUTUBE
+    </div>
+    <div>
+      <div class="countdown-number" id="countdownNumber">5</div>
+      <p style="font-size: 0.7rem;">Aguarde para liberar o botão</p>
+    </div>
+    <button id="popupMainBtn" class="popup-main-btn">
+      <i class="fab fa-youtube"></i> CONHECER CANAL AGORA
+    </button>
+  </div>
+</div>
+
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+<script>
+  // Config Connect Four
+  const ROWS = 6;
+  const COLS = 7;
+  let currentPlayer = 'red';
+  let board = [];
+  let gameOver = false;
+  let redScore = 0;
+  let yellowScore = 0;
+  let winTimeout = null;
+
+  const boardElement = document.getElementById('board');
+  const statusText = document.getElementById('status');
+  const redScoreElem = document.getElementById('redScore');
+  const yellowScoreElem = document.getElementById('yellowScore');
+  
+  // CANAL URL
+  const CHANNEL_URL = "https://youtube.com/@thedragon-i7x?si=qOY7g_bXsadgiQ3K''";
+
+  // Funções do jogo
+  function clearWinEffects() {
+    document.querySelectorAll('.cell').forEach(cell => cell.classList.remove('win-glow'));
+    if (winTimeout) clearTimeout(winTimeout);
+  }
+
+  function highlightWinningCells(cellsArray) {
+    clearWinEffects();
+    if (!cellsArray.length) return;
+    const cellsDom = document.querySelectorAll('.cell');
+    cellsArray.forEach(pos => {
+      const idx = pos.row * COLS + pos.col;
+      if (cellsDom[idx]) cellsDom[idx].classList.add('win-glow');
+    });
+    winTimeout = setTimeout(() => {
+      document.querySelectorAll('.cell').forEach(c => c.classList.remove('win-glow'));
+    }, 1300);
+  }
+
+  function createBoardVisual() {
+    boardElement.innerHTML = '';
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        const cellDiv = document.createElement('div');
+        cellDiv.classList.add('cell');
+        const val = board[r][c];
+        if (val === 'red') cellDiv.classList.add('red');
+        else if (val === 'yellow') cellDiv.classList.add('yellow');
+        cellDiv.addEventListener('click', (function(col) { return () => dropPiece(col); })(c));
+        boardElement.appendChild(cellDiv);
+      }
+    }
+  }
+
+  function initBoardMemory(keepScores = true) {
+    if (!keepScores) {
+      redScore = 0;
+      yellowScore = 0;
+      updateScoreUI();
+    }
+    board = Array(ROWS).fill().map(() => Array(COLS).fill(null));
+    gameOver = false;
+    currentPlayer = 'red';
+    statusText.innerHTML = '🔴 Vez do Jogador Vermelho';
+    clearWinEffects();
+    createBoardVisual();
+  }
+
+  function updateScoreUI() {
+    redScoreElem.innerText = redScore;
+    yellowScoreElem.innerText = yellowScore;
+  }
+
+  function isBoardFull() {
+    for (let r = 0; r < ROWS; r++) {
+      for (let c = 0; c < COLS; c++) {
+        if (board[r][c] === null) return false;
+      }
+    }
+    return true;
+  }
+
+  function countDirection(row, col, dr, dc, player) {
+    let cnt = 0;
+    let r = row + dr, c = col + dc;
+    while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
+      cnt++;
+      r += dr;
+      c += dc;
+    }
+    return cnt;
+  }
+
+  function getWinningCells(row, col, player) {
+    const dirs = [
+      { dr: 0, dc: 1 }, { dr: 0, dc: -1 },
+      { dr: 1, dc: 0 }, { dr: -1, dc: 0 },
+      { dr: 1, dc: 1 }, { dr: -1, dc: -1 },
+      { dr: 1, dc: -1 }, { dr: -1, dc: 1 }
+    ];
+    for (let i = 0; i < dirs.length; i += 2) {
+      const d1 = dirs[i];
+      const d2 = dirs[i+1];
+      const count1 = countDirection(row, col, d1.dr, d1.dc, player);
+      const count2 = countDirection(row, col, d2.dr, d2.dc, player);
+      if (count1 + count2 + 1 >= 4) {
+        const cells = [{ row, col }];
+        let r = row + d1.dr, c = col + d1.dc;
+        while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
+          cells.push({ row: r, col: c });
+          r += d1.dr; c += d1.dc;
+        }
+        r = row + d2.dr; c = col + d2.dc;
+        while (r >= 0 && r < ROWS && c >= 0 && c < COLS && board[r][c] === player) {
+          cells.push({ row: r, col: c });
+          r += d2.dr; c += d2.dc;
+        }
+        return cells;
+      }
+    }
+    return [];
+  }
+
+  function dropPiece(col) {
+    if (gameOver) return;
+    let targetRow = -1;
+    for (let r = ROWS - 1; r >= 0; r--) {
+      if (board[r][col] === null) {
+        targetRow = r;
+        break;
+      }
+    }
+    if (targetRow === -1) return;
+    
+    board[targetRow][col] = currentPlayer;
+    createBoardVisual();
+    
+    const winningCells = getWinningCells(targetRow, col, currentPlayer);
+    if (winningCells.length >= 4) {
+      gameOver = true;
+      highlightWinningCells(winningCells);
+      if (currentPlayer === 'red') {
+        redScore++;
+        updateScoreUI();
+        statusText.innerHTML = '🏆🔴 VERMELHO VENCEU! 🔴🏆';
+        animateScoreBadge('redScore');
+      } else {
+        yellowScore++;
+        updateScoreUI();
+        statusText.innerHTML = '🏆🟡 AMARELO VENCEU! 🟡🏆';
+        animateScoreBadge('yellowScore');
+      }
+      return;
+    }
+    
+    if (isBoardFull()) {
+      gameOver = true;
+      statusText.innerHTML = '🤝 EMPATE! Tabuleiro completo 🤝';
+      return;
+    }
+    
+    currentPlayer = currentPlayer === 'red' ? 'yellow' : 'red';
+    updateTurnDisplay();
+  }
+  
+  function animateScoreBadge(elId) {
+    const el = document.getElementById(elId);
+    if (el) {
+      el.style.transform = 'scale(1.2)';
+      setTimeout(() => { if(el) el.style.transform = ''; }, 200);
+    }
+  }
+  
+  function updateTurnDisplay() {
+    if (gameOver) return;
+    statusText.innerHTML = currentPlayer === 'red' ? '🔴 Vez do Jogador Vermelho' : '🟡 Vez do Jogador Amarelo';
+  }
+  
+  function resetGame() {
+    if (winTimeout) clearTimeout(winTimeout);
+    initBoardMemory(true);
+  }
+  
+  function fullResetMemory() {
+    if (winTimeout) clearTimeout(winTimeout);
+    initBoardMemory(false);
+    statusText.innerHTML = '🔴 Vez do Jogador Vermelho';
+  }
+  
+  // BANNER com link
+  function setupBanner() {
+    const banner = document.getElementById('ytBanner');
+    if (banner) {
+      banner.addEventListener('click', (e) => {
+        e.preventDefault();
+        window.open(CHANNEL_URL, '_blank', 'noopener,noreferrer');
+      });
+    }
+  }
+  
+  // POPUP com contagem 5s e botão X
+  function setupPopup() {
+    const overlay = document.getElementById('popupOverlay');
+    const closeX = document.getElementById('popupCloseX');
+    const mainBtn = document.getElementById('popupMainBtn');
+    const countdownSpan = document.getElementById('countdownNumber');
+    
+    let count = 5;
+    let interval = null;
+    overlay.classList.add('active');
+    
+    function enableInteraction() {
+      if (interval) clearInterval(interval);
+      closeX.classList.add('active');
+      mainBtn.classList.add('active');
+      countdownSpan.innerText = '0';
+    }
+    
+    function updateTimer() {
+      countdownSpan.innerText = count;
+      if (count <= 0) {
+        enableInteraction();
+      }
+      count--;
+    }
+    updateTimer();
+    interval = setInterval(() => {
+      if (count >= 0) updateTimer();
+      else if (interval) clearInterval(interval);
+    }, 1000);
+    
+    function closeAndRedirect() {
+      if (!closeX.classList.contains('active') && !mainBtn.classList.contains('active')) return;
+      window.open(CHANNEL_URL, '_blank', 'noopener,noreferrer');
+      overlay.classList.remove('active');
+      if (interval) clearInterval(interval);
+    }
+    
+    mainBtn.addEventListener('click', (e) => {
+      if (mainBtn.classList.contains('active')) closeAndRedirect();
+    });
+    closeX.addEventListener('click', (e) => {
+      if (closeX.classList.contains('active')) {
+        overlay.classList.remove('active');
+        if (interval) clearInterval(interval);
+      }
+    });
+    // clique fora opcional mas não interfere
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay && closeX.classList.contains('active')) {
+        overlay.classList.remove('active');
+        if (interval) clearInterval(interval);
+      }
+    });
+  }
+  
+  // Eventos de botões
+  function bindButtons() {
+    const resetBtn = document.getElementById('resetGameBtn');
+    const fullBtn = document.getElementById('fullResetBtn');
+    if (resetBtn) {
+      const newReset = resetBtn.cloneNode(true);
+      resetBtn.parentNode.replaceChild(newReset, resetBtn);
+      newReset.addEventListener('click', resetGame);
+    }
+    if (fullBtn) {
+      const newFull = fullBtn.cloneNode(true);
+      fullBtn.parentNode.replaceChild(newFull, fullBtn);
+      newFull.addEventListener('click', fullResetMemory);
+    }
+  }
+  
+  function startGame() {
+    initBoardMemory(false);
+    bindButtons();
+    setupBanner();
+    setupPopup();
+  }
+  
+  startGame();
+</script>
+</body>
+</html>
